@@ -1,0 +1,198 @@
+html.is-overlay,
+html.is-overlay body {
+  background: transparent !important;
+}
+
+html.is-overlay body {
+  margin: 0;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-label);
+  transition: opacity 320ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1), filter 320ms ease;
+}
+.overlay.is-hidden {
+  opacity: 0;
+  transform: scale(0.975);
+  filter: blur(7px);
+}
+
+.overlay__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-bottom: 7vh;
+}
+
+.wheel-frame--overlay {
+  width: min(64vh, 64vw);
+  max-width: 94vw;
+}
+.wheel-frame--overlay .pointer {
+  top: -6px;
+  width: 30px;
+  height: 42px;
+}
+
+.overlay.is-empty .wheel-frame {
+  opacity: 0;
+}
+
+/* ---------- winner lower third ---------- */
+
+.winner {
+  position: absolute;
+  left: 50%;
+  bottom: 5vh;
+  width: min(720px, 88vw);
+  padding: clamp(12px, 1.9vh, 20px) clamp(16px, 2.4vw, 26px) clamp(14px, 2.1vh, 22px);
+  border: 1px solid rgb(246 241 230 / 0.18);
+  border-radius: 4px;
+  background: rgb(9 11 13 / 0.94);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9), 0 2px 8px -2px rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transform: translate(-50%, 24px) scale(0.985);
+  transition: opacity 220ms ease, transform 440ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.winner[hidden] {
+  display: none;
+}
+.winner.is-shown {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.winner__rule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 4px 4px 0 0;
+  background: rgb(246 241 230 / 0.1);
+}
+.winner__rule span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+
+.winner__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.winner__tag {
+  display: inline-block;
+  padding: 3px 7px 2px;
+  border-radius: 2px;
+  background: var(--gold);
+  color: var(--gold-ink);
+  font-family: var(--font-data);
+  font-size: clamp(9px, 1vh, 10px);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.winner__round {
+  font-size: clamp(9px, 1.1vh, 11px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+
+.winner__label {
+  margin-top: clamp(8px, 1.3vh, 13px);
+  font-size: clamp(24px, 4.4vh, 52px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.winner__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: clamp(6px, 1vh, 10px);
+  font-size: clamp(9px, 1.15vh, 12px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+.winner__meta[hidden] {
+  display: none;
+}
+.winner__meta span:first-child:not(:empty) {
+  color: var(--paper-2);
+  font-weight: 600;
+}
+.winner__meta span:first-child:not(:empty) + span::before {
+  content: '·';
+  margin-right: 12px;
+  color: var(--line-bright);
+}
+.winner__meta span:empty {
+  display: none;
+}
+
+.audio-chip {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-bright);
+  border-radius: 2px;
+  background: rgb(9 11 13 / 0.9);
+  color: var(--paper);
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.audio-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.audio-chip[hidden] {
+  display: none;
+}
+
+@keyframes banner-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .wheel-frame--overlay {
+    width: min(56vh, 76vw);
+  }
+  .winner {
+    bottom: 3vh;
+    width: 92vw;
+  }
+}
