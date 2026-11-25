@@ -9,8 +9,8 @@ test('labelFits keeps text on 40 equal slices', () => {
   assert.equal(labelFits({ angle: (2 * Math.PI) / 40 }, 234), true);
 });
 
-test('labelFits drops text on 150 equal slices', () => {
-  assert.equal(labelFits({ angle: (2 * Math.PI) / 150 }, 234), false);
+test('labelFits drops text on 200 equal slices', () => {
+  assert.equal(labelFits({ angle: (2 * Math.PI) / 200 }, 234), false);
 });
 
 test('labelFits keeps text on a wide weighted slice', () => {

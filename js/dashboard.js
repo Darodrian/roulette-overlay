@@ -113,21 +113,21 @@ const TEMPLATE = `
         </div>
       </div>
       <p class="panel__hint" data-hint></p>
-      <ol class="picks" data-items></ol>
-      <button class="add" type="button" data-add><span aria-hidden="true">+</span> Add pick</button>
       <details class="bulk">
         <summary>Bulk add</summary>
         <label class="sr" for="bulk-text">Paste picks, one per line</label>
         <div class="bulk__drop" data-bulk-drop>
           <textarea id="bulk-text" class="input" data-bulk-text rows="6" spellcheck="false" placeholder="One pick per line…"></textarea>
         </div>
-        <p class="bulk__hint">One pick per line. Up to 150 picks total.</p>
+        <p class="bulk__hint">One pick per line. Up to 200 picks total.</p>
         <input id="bulk-file" type="file" accept=".txt,.csv,.md,text/plain" data-bulk-file hidden>
         <div class="bulk__actions">
           <label class="btn btn--sm" for="bulk-file">Choose file</label>
           <button class="btn btn--sm btn--gold" type="button" data-bulk-add>Add picks</button>
         </div>
       </details>
+      <ol class="picks" data-items></ol>
+      <button class="add" type="button" data-add><span aria-hidden="true">+</span> Add pick</button>
       <p class="swarn" data-warn hidden></p>
     </section>
 
@@ -412,7 +412,7 @@ export function mount(root) {
       </label>
       <div class="pick__body">
         <div class="pick__line">
-          <input class="input pick__label" data-label maxlength="80" spellcheck="false" aria-label="Pick label">
+          <input class="input pick__label" data-label maxlength="100" spellcheck="false" aria-label="Pick label">
           <span class="pick__pct mono" data-pct></span>
           <div class="pick__tools">
             <button class="icon-btn" type="button" data-up aria-label="Move up" title="Move up">${ICONS.up}</button>
