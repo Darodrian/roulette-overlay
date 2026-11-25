@@ -1,8 +1,8 @@
 const STORAGE_KEY = 'roulette-overlay/v1';
 const CHANNEL_NAME = 'roulette-overlay';
 
-export const MAX_ITEMS = 40;
-export const MAX_LABEL = 80;
+export const MAX_ITEMS = 200;
+export const MAX_LABEL = 100;
 
 export const PALETTE = [
   '#d8a03c',
@@ -60,6 +60,31 @@ function cleanText(value, max = MAX_LABEL) {
     .replace(/[\u0000-\u001F\u007F]/g, ' ')
     .replace(/\s+/g, ' ')
     .slice(0, max);
+}
+
+export function parsePickLines(text) {
+  return String(text == null ? '' : text)
+    .split(/\r\n|\r|\n/)
+    .map((line) => cleanText(line.trim()).trim())
+    .filter(Boolean);
+}
+
+export function isTextFile(file) {
+  return file?.type === 'text/plain' || /\.(txt|csv|md)$/i.test(String(file?.name ?? ''));
+}
+
+export function buildBulkItems(items, labels) {
+  const chosen = labels.slice(0, Math.max(0, MAX_ITEMS - items.length));
+  return {
+    addedItems: chosen.map((label, index) => ({
+      id: uid(),
+      label,
+      color: PALETTE[(items.length + index) % PALETTE.length],
+      weight: 1,
+    })),
+    added: chosen.length,
+    skipped: labels.length - chosen.length,
+  };
 }
 
 function cleanColor(value, index) {

@@ -72,6 +72,10 @@ export function inkFor(hex) {
   return onDark >= onLight ? INK_LIGHT : INK_DARK;
 }
 
+export function labelFits(slice, rRim) {
+  return slice.angle * (rRim - 12) >= 16;
+}
+
 function sliceSignature(slices) {
   return slices.map((slice) => `${slice.id}:${slice.weight}:${slice.label}:${slice.color}`).join('|');
 }
@@ -165,7 +169,7 @@ export class Wheel {
       const ceiling = Math.min(26, Math.max(9, slice.angle * rText * 0.72));
       const floor = Math.min(9, ceiling);
       let size = ceiling;
-      let text = slice.label;
+      let text = labelFits(slice, rRim) ? slice.label : '';
       ctx.font = `600 ${size}px ${this.labelFamily}`;
       while (size > floor && ctx.measureText(text).width > maxLength) {
         size -= 0.5;

@@ -2,12 +2,15 @@ import {
   PALETTE,
   MAX_ITEMS,
   applyImport,
+  buildBulkItems,
   clearSpin,
   deleteProfile,
   exportPayload,
   getState,
+  isTextFile,
   loadProfile,
   parseImport,
+  parsePickLines,
   resetRounds,
   saveProfile,
   subscribe,
@@ -112,6 +115,19 @@ const TEMPLATE = `
       <p class="panel__hint" data-hint></p>
       <ol class="picks" data-items></ol>
       <button class="add" type="button" data-add><span aria-hidden="true">+</span> Add pick</button>
+      <details class="bulk">
+        <summary>Bulk add</summary>
+        <label class="sr" for="bulk-text">Paste picks, one per line</label>
+        <div class="bulk__drop" data-bulk-drop>
+          <textarea id="bulk-text" class="input" data-bulk-text rows="6" spellcheck="false" placeholder="One pick per line…"></textarea>
+        </div>
+        <p class="bulk__hint">One pick per line. Up to 150 picks total.</p>
+        <input id="bulk-file" type="file" accept=".txt,.csv,.md,text/plain" data-bulk-file hidden>
+        <div class="bulk__actions">
+          <label class="btn btn--sm" for="bulk-file">Choose file</label>
+          <button class="btn btn--sm btn--gold" type="button" data-bulk-add>Add picks</button>
+        </div>
+      </details>
       <p class="swarn" data-warn hidden></p>
     </section>
 
@@ -267,6 +283,10 @@ export function mount(root) {
     url: root.querySelector('[data-url]'),
     importInput: root.querySelector('[data-import]'),
     picksPanel: root.querySelector('.picks-panel'),
+    bulkText: root.querySelector('[data-bulk-text]'),
+    bulkFile: root.querySelector('[data-bulk-file]'),
+    bulkDrop: root.querySelector('[data-bulk-drop]'),
+    bulkAdd: root.querySelector('[data-bulk-add]'),
   };
 
   const wheel = new Wheel(el.wheel);
@@ -598,6 +618,36 @@ export function mount(root) {
     });
   }
 
+  function addPicksFromText(text) {
+    const spin = getState().spin;
+    if (spin && !isDone(spin)) return;
+    const labels = parsePickLines(text);
+    if (!labels.length) {
+      toast('No picks found — one per line.');
+      return;
+    }
+    const { addedItems, added, skipped } = buildBulkItems(getState().items, labels);
+    if (!added) {
+      toast(`That's the limit: ${MAX_ITEMS} picks.`);
+      return;
+    }
+    update((draft) => {
+      draft.items.push(...addedItems);
+      draft.activeProfileId = null;
+    });
+    el.bulkText.value = '';
+    toast(skipped ? `Added ${added} picks. ${skipped} skipped — ${MAX_ITEMS} max.` : `Added ${added} picks.`);
+  }
+
+  async function applyBulkFile(file) {
+    if (!isTextFile(file)) {
+      toast('Drop a plain text file (.txt, .csv or .md).');
+      return;
+    }
+    el.bulkText.value = await file.text();
+    toast(`Loaded ${parsePickLines(el.bulkText.value).length} lines — click Add picks.`);
+  }
+
   /* ---------- spin ---------- */
 
   function doSpin() {
@@ -739,6 +789,32 @@ export function mount(root) {
   });
 
   root.querySelector('[data-add]').addEventListener('click', addItem);
+
+  el.bulkAdd.addEventListener('click', () => addPicksFromText(el.bulkText.value));
+  el.bulkFile.addEventListener('change', async () => {
+    const file = el.bulkFile.files?.[0];
+    el.bulkFile.value = '';
+    if (file) await applyBulkFile(file);
+  });
+  for (const type of ['dragenter', 'dragover']) {
+    el.bulkDrop.addEventListener(type, (event) => {
+      event.preventDefault();
+      el.bulkDrop.classList.add('is-dragover');
+    });
+  }
+  el.bulkDrop.addEventListener('dragleave', () => el.bulkDrop.classList.remove('is-dragover'));
+  el.bulkDrop.addEventListener('drop', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    el.bulkDrop.classList.remove('is-dragover');
+    const file = event.dataTransfer?.files?.[0];
+    if (file) applyBulkFile(file);
+  });
+  for (const type of ['dragover', 'drop']) {
+    document.addEventListener(type, (event) => {
+      if (event.dataTransfer?.types?.includes('Files')) event.preventDefault();
+    });
+  }
 
   function setOverlayVisible(visible) {
     update((draft) => {
