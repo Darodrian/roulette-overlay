@@ -3,8 +3,10 @@ import {
   MAX_ITEMS,
   applyImport,
   buildBulkItems,
+  clearAllPicks,
   clearSpin,
   deleteProfile,
+  eliminateWinner,
   exportPayload,
   getState,
   isTextFile,
@@ -12,6 +14,8 @@ import {
   parseImport,
   parsePickLines,
   resetRounds,
+  restoreAllPicks,
+  restoreWinner,
   saveProfile,
   subscribe,
   uid,
@@ -86,7 +90,10 @@ const TEMPLATE = `
           <span class="eyebrow">Clock</span>
           <strong class="readout__value mono" data-clock>6.5s</strong>
         </div>
-        <button class="readout__dismiss" type="button" data-dismiss hidden>Clear</button>
+        <div class="readout__actions">
+          <button class="readout__dismiss readout__dismiss--danger" type="button" data-eliminate hidden aria-label="Eliminate winning pick">Eliminate</button>
+          <button class="readout__dismiss" type="button" data-dismiss hidden>Clear</button>
+        </div>
       </div>
       <div class="runline" aria-hidden="true"><span data-progress></span></div>
 
@@ -106,7 +113,10 @@ const TEMPLATE = `
 
     <section class="panel picks-panel" aria-labelledby="picks-title">
       <div class="panel__head">
-        <h2 class="panel__title" id="picks-title">Picks <span class="count mono" data-count>0</span></h2>
+        <div class="picks-head__start">
+          <h2 class="panel__title" id="picks-title">Picks <span class="count mono" data-count>0</span></h2>
+          <button class="link-btn link-btn--danger" type="button" data-clear-all hidden>Clear all</button>
+        </div>
         <div class="segmented" data-mode role="group" aria-label="Odds mode">
           <button type="button" data-mode-btn="equal">Equal</button>
           <button type="button" data-mode-btn="weighted">Weighted</button>
@@ -252,8 +262,10 @@ export function mount(root) {
     result: root.querySelector('[data-result]'),
     clock: root.querySelector('[data-clock]'),
     dismiss: root.querySelector('[data-dismiss]'),
+    eliminate: root.querySelector('[data-eliminate]'),
     progress: root.querySelector('[data-progress]'),
     count: root.querySelector('[data-count]'),
+    clearAll: root.querySelector('[data-clear-all]'),
     hint: root.querySelector('[data-hint]'),
     items: root.querySelector('[data-items]'),
     warn: root.querySelector('[data-warn]'),
@@ -307,6 +319,8 @@ export function mount(root) {
 
   function render(state) {
     const spinning = state.spin ? !isDone(state.spin) : false;
+    el.clearAll.hidden = !state.items.length;
+    el.clearAll.disabled = spinning;
     const activeSpin = state.spin;
     const { slices, excluded } = buildSlices(state.items, state.mode);
     const total = slices.length;
@@ -384,6 +398,7 @@ export function mount(root) {
   function renderResult(state, slices, spinning) {
     const spin = state.spin;
     el.dismiss.hidden = !spin;
+    el.eliminate.hidden = !spin || !isDone(spin);
     if (!spin) {
       el.result.textContent = 'Ready';
       el.result.dataset.tone = 'idle';
@@ -766,6 +781,28 @@ export function mount(root) {
   el.dismiss.addEventListener('click', () => {
     clearSpin();
     render(getState());
+  });
+  el.eliminate.addEventListener('click', () => {
+    const spin = getState().spin;
+    if (!spin || !isDone(spin)) return;
+    const removed = eliminateWinner(spin.winnerId);
+    if (!removed) {
+      toast('Result cleared.');
+      return;
+    }
+    toast(`Eliminated “${removed.item.label}”`, {
+      actionLabel: 'Undo',
+      onAction: () => restoreWinner(removed),
+    });
+  });
+  el.clearAll.addEventListener('click', () => {
+    const spin = getState().spin;
+    if (spin && !isDone(spin)) return;
+    const snapshot = clearAllPicks();
+    toast('Cleared all picks', {
+      actionLabel: 'Undo',
+      onAction: () => restoreAllPicks(snapshot),
+    });
   });
 
   for (const button of el.modes) {

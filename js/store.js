@@ -398,6 +398,51 @@ export function clearSpin() {
   });
 }
 
+export function eliminateWinner(winnerId) {
+  const state = getState();
+  const index = state.items.findIndex((item) => item.id === winnerId);
+  const item = index >= 0 ? state.items[index] : null;
+  update((draft) => {
+    const current = draft.items.findIndex((entry) => entry.id === winnerId);
+    if (current >= 0) draft.items.splice(current, 1);
+    draft.activeProfileId = null;
+    draft.spin = null;
+  });
+  return item ? { item: clone(item), index } : null;
+}
+
+export function restoreWinner(removed) {
+  if (!removed?.item) return;
+  update((draft) => {
+    if (draft.items.length >= MAX_ITEMS) return;
+    draft.items.splice(Math.min(removed.index, draft.items.length), 0, clone(removed.item));
+  });
+}
+
+export function clearAllPicks() {
+  const state = getState();
+  const snapshot = {
+    items: state.items.map(clone),
+    activeProfileId: state.activeProfileId,
+  };
+  update((draft) => {
+    draft.items = [];
+    draft.activeProfileId = null;
+    draft.spin = null;
+  });
+  return snapshot;
+}
+
+export function restoreAllPicks(snapshot) {
+  if (!snapshot || !Array.isArray(snapshot.items)) return;
+  update((draft) => {
+    if (draft.items.length) return;
+    draft.items = snapshot.items.map(clone);
+    draft.activeProfileId =
+      typeof snapshot.activeProfileId === 'string' ? snapshot.activeProfileId : null;
+  });
+}
+
 export function resetRounds() {
   update((draft) => {
     draft.round = 0;
